@@ -17,6 +17,7 @@ build/
 .next/
 out/
 *.tsbuildinfo
+scratch/
 
 # Environment variables
 .env
