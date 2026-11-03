@@ -132,3 +132,106 @@ def verify_truth(req: VerifyTruthRequest):
     profile = UserProfile(**req.user_profile)
     res = verify_draft_against_profile(req.cv_draft, profile)
     return res.to_dict()
+
+
+# ============================================================
+# Additional imports for all 11 agents
+# ============================================================
+from ai_agents.agents.profile_master import ingest_and_normalize_profile
+from ai_agents.agents.portfolio_builder import build_portfolio
+from ai_agents.agents.source_watcher import check_profile_staleness
+from ai_agents.agents.job_discovery import discover_jobs
+from ai_agents.agents.learning_assistant import generate_learning_path
+from ai_agents.agents.application_prep import prepare_application_bundle
+from ai_agents.agents.outreach_mail import draft_outreach_email
+from ai_agents.agents.career_tracker import transition_application_status, get_kanban_board
+from ai_agents.agents.career_advisor import advise
+
+
+class ProfileRequest(BaseModel):
+    user_profile: Dict[str, Any]
+
+class PortfolioRequest(BaseModel):
+    user_profile: Dict[str, Any]
+    theme: str = "cyber"
+
+class StalenessRequest(BaseModel):
+    user_id: str
+    last_updated_iso: str
+    github_username: str = ""
+
+class JobDiscoveryRequest(BaseModel):
+    user_profile: Dict[str, Any]
+    limit: int = 10
+
+class LearningPathRequest(BaseModel):
+    confirmed_gaps: list[str]
+    weekly_hours: int = 10
+
+class ApplicationBundleRequest(BaseModel):
+    user_profile: Dict[str, Any]
+    job: Dict[str, Any]
+    tailored_cv: Dict[str, Any]
+    cover_note: Optional[str] = None
+
+class OutreachMailRequest(BaseModel):
+    user_profile: Dict[str, Any]
+    job: Dict[str, Any]
+    email_type: str = "APPLICATION"
+
+class TrackerTransitionRequest(BaseModel):
+    application_id: str
+    current_status: str
+    new_status: str
+    user_id: str
+    notes: Optional[str] = None
+
+class KanbanBoardRequest(BaseModel):
+    applications: list[Dict[str, Any]]
+
+class AdvisorRequest(BaseModel):
+    message: str
+    user_id: str
+    language: str = "en"
+    context: Optional[Dict[str, Any]] = None
+
+
+@app.post("/api/agents/profile/normalize")
+def normalize_profile(req: ProfileRequest):
+    return ingest_and_normalize_profile(req.user_profile)
+
+@app.post("/api/agents/portfolio/build")
+def build_portfolio_endpoint(req: PortfolioRequest):
+    return build_portfolio(req.user_profile, req.theme)
+
+@app.post("/api/agents/profile/check-staleness")
+def check_staleness(req: StalenessRequest):
+    return check_profile_staleness(req.user_id, req.last_updated_iso, req.github_username)
+
+@app.post("/api/agents/jobs/discover")
+def discover_jobs_endpoint(req: JobDiscoveryRequest):
+    return discover_jobs(req.user_profile, req.limit)
+
+@app.post("/api/agents/learning/path")
+def learning_path(req: LearningPathRequest):
+    return generate_learning_path(req.confirmed_gaps, req.weekly_hours)
+
+@app.post("/api/agents/application/prepare")
+def prepare_application(req: ApplicationBundleRequest):
+    return prepare_application_bundle(req.user_profile, req.job, req.tailored_cv, req.cover_note)
+
+@app.post("/api/agents/outreach/draft-email")
+def draft_email(req: OutreachMailRequest):
+    return draft_outreach_email(req.user_profile, req.job, req.email_type)
+
+@app.post("/api/agents/tracker/transition")
+def tracker_transition(req: TrackerTransitionRequest):
+    return transition_application_status(req.application_id, req.current_status, req.new_status, req.user_id, req.notes)
+
+@app.post("/api/agents/tracker/kanban")
+def kanban_board(req: KanbanBoardRequest):
+    return get_kanban_board(req.applications)
+
+@app.post("/api/agents/advisor/chat")
+def advisor_chat(req: AdvisorRequest):
+    return advise(req.message, req.user_id, req.language, req.context)
