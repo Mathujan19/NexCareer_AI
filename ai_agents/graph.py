@@ -8,7 +8,7 @@ Implements the Phase 1 Golden Path:
 5. Finalize Document Node (Locks approved CV)
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Dict, Any
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
@@ -34,7 +34,7 @@ def skill_gap_node(state: CareerOrchestratorState) -> Dict[str, Any]:
     audit_entry = {
         "agent": "GapAnalyzerAgent",
         "action": "EVALUATE_SKILL_GAPS",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "details": f"Analyzed {gap_report['total_requirements']} requirements. Match score: {gap_report['match_score']}%",
     }
 
@@ -61,7 +61,7 @@ def cv_tailoring_node(state: CareerOrchestratorState) -> Dict[str, Any]:
     audit_entry = {
         "agent": "CVOptimizerAgent",
         "action": "TAILOR_CV_DRAFT",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "details": f"Generated tailored draft '{tailored_draft['version_tag']}' with STAR bullet alignments.",
     }
 
@@ -85,7 +85,7 @@ def truth_guardrail_node(state: CareerOrchestratorState) -> Dict[str, Any]:
     audit_entry = {
         "agent": "DeterministicTruthChecker",
         "action": "ASSERT_ZERO_HALLUCINATION",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "passed": verification_result.is_valid,
         "details": verification_result.details,
     }
@@ -119,7 +119,7 @@ def human_approval_node(state: CareerOrchestratorState) -> Dict[str, Any]:
     audit_entry = {
         "agent": "HumanApprovalGate",
         "action": "RECORD_USER_DECISION",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "details": f"Received user approval decision: {user_decision}",
     }
 
@@ -135,7 +135,7 @@ def finalize_document_node(state: CareerOrchestratorState) -> Dict[str, Any]:
     audit_entry = {
         "agent": "CVSynthesisAgent",
         "action": "LOCK_FINAL_DOCUMENT",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "details": "Document successfully approved and locked for application submission.",
     }
 
@@ -150,7 +150,7 @@ def halt_on_violation_node(state: CareerOrchestratorState) -> Dict[str, Any]:
     audit_entry = {
         "agent": "DeterministicTruthChecker",
         "action": "ABORT_ON_UNVERIFIED_CLAIM",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "details": f"Execution halted: {state.get('truth_violations')} cannot be verified in candidate database.",
     }
 
