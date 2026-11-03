@@ -3,7 +3,7 @@
 Performs matrix comparison between target job requirements and verified profile evidence.
 """
 
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Dict, Any, List
 from ai_agents.schemas import UserProfile, JobTarget, SkillVerificationStatus
 
@@ -92,7 +92,7 @@ def run_skill_gap_analysis(profile: UserProfile, job: JobTarget) -> Dict[str, An
         "partially_demonstrated": partially_demonstrated,
         "confirmed_gaps": confirmed_gaps,
         "missing_mandatory": missing_mandatory,
-        "analyzed_at": datetime.utcnow().isoformat(),
+        "analyzed_at": datetime.now(UTC).isoformat(),
         "total_requirements": total_reqs,
         "rationale": {
             "demonstrated_count": len(demonstrated),
